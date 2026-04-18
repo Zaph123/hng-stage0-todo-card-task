@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Todo Item Card — Stage 0</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=DM+Mono:wght@400;500&display=swap"
+    rel="stylesheet" />
+
+  <style>
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --bg-page: #F5F3EE;
+      --bg-card: #FFFFFF;
+      --bg-surface: #F9F8F6;
+      --bg-surface-2: #F0EDE8;
+
+      --text-primary: #1C1A17;
+      --text-secondary: #5C5750;
+      --text-muted: #9C968E;
+      --text-inverse: #FFFFFF;
+
+      --border: rgba(28, 26, 23, 0.10);
+      --border-strong: rgba(28, 26, 23, 0.20);
+
+      --accent-purple: #6B4EFF;
+      --accent-purple-bg: #EEE9FF;
+      --accent-purple-text: #3D22CC;
+
+      --priority-high-bg: #FFF0ED;
+      --priority-high-text: #C0340D;
+      --priority-high-dot: #E04514;
+
+      --priority-med-bg: #FFF8E6;
+      --priority-med-text: #9A6200;
+      --priority-med-dot: #E8A000;
+
+      --priority-low-bg: #EDFAF3;
+      --priority-low-text: #1A7A45;
+      --priority-low-dot: #22A05B;
+
+      --status-pending-bg: #F2F0FF;
+      --status-pending-text: #4B3BBF;
+
+      --status-progress-bg: #FFF8E6;
+      --status-progress-text: #9A6200;
+
+      --status-done-bg: #EDFAF3;
+      --status-done-text: #1A7A45;
+
+      --tag-bg: #F0EDE8;
+      --tag-text: #5C5750;
+
+      --delete-hover-bg: #FFF0ED;
+      --delete-hover-text: #C0340D;
+      --delete-hover-border: #F5C0B0;
+
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 16px;
+      --radius-xl: 20px;
+      --radius-pill: 100px;
+
+      --shadow-card:
+        0 1px 2px rgba(28, 26, 23, .04),
+        0 4px 12px rgba(28, 26, 23, .06),
+        0 8px 24px rgba(28, 26, 23, .04);
+
+      --font-sans: 'DM Sans', system-ui, sans-serif;
+      --font-mono: 'DM Mono', 'Courier New', monospace;
+
+      --transition: 200ms cubic-bezier(.4, 0, .2, 1);
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--bg-page);
+      color: var(--text-primary);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1rem;
+    }
+
+    /* subtle dot grid */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background-image: radial-gradient(circle, rgba(28, 26, 23, .12) 1px, transparent 1px);
+      background-size: 24px 24px;
+      z-index: 0;
+    }
+
+    main {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 480px;
+    }
+
+    /* ── Card ── */
+    article.todo-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-card);
+      overflow: hidden;
+      transition: box-shadow var(--transition);
+    }
+
+    article.todo-card:focus-within {
+      box-shadow:
+        var(--shadow-card),
+        0 0 0 3px rgba(107, 78, 255, .2);
+    }
+
+    /* ── Card Top Bar ── */
+    .card-topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem 1.25rem 0;
+      gap: 8px;
+    }
+
+    .badge-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    /* ── Badges ── */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11.5px;
+      font-weight: 500;
+      letter-spacing: .01em;
+      padding: 3px 9px;
+      border-radius: var(--radius-pill);
+      line-height: 1.5;
+      white-space: nowrap;
+    }
+
+    .badge .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .badge-priority-high {
+      background: var(--priority-high-bg);
+      color: var(--priority-high-text);
+    }
+
+    .badge-priority-high .dot {
+      background: var(--priority-high-dot);
+    }
+
+    .badge-priority-medium {
+      background: var(--priority-med-bg);
+      color: var(--priority-med-text);
+    }
+
+    .badge-priority-medium .dot {
+      background: var(--priority-med-dot);
+    }
+
+    .badge-priority-low {
+      background: var(--priority-low-bg);
+      color: var(--priority-low-text);
+    }
+
+    .badge-priority-low .dot {
+      background: var(--priority-low-dot);
+    }
+
+    .badge-status {
+      background: var(--status-progress-bg);
+      color: var(--status-progress-text);
+    }
+
+    .badge-status.done {
+      background: var(--status-done-bg);
+      color: var(--status-done-text);
+    }
+
+    .badge-status.pending {
+      background: var(--status-pending-bg);
+      color: var(--status-pending-text);
+    }
+
+    /* ── Action Buttons ── */
+    .actions {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .icon-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      background: transparent;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: background var(--transition), color var(--transition), border-color var(--transition), transform var(--transition);
+    }
+
+    .icon-btn:hover {
+      background: var(--bg-surface-2);
+      color: var(--text-primary);
+      border-color: var(--border-strong);
+    }
+
+    .icon-btn:active {
+      transform: scale(.92);
+    }
+
+    .icon-btn:focus-visible {
+      outline: 2px solid var(--accent-purple);
+      outline-offset: 2px;
+    }
+
+    .icon-btn.delete:hover {
+      background: var(--delete-hover-bg);
+      color: var(--delete-hover-text);
+      border-color: var(--delete-hover-border);
+    }
+
+    .icon-btn svg {
+      width: 15px;
+      height: 15px;
+    }
+
+    /* ── Card Main ── */
+    .card-main {
+      padding: 1rem 1.25rem;
+    }
+
+    /* ── Checkbox + Title row ── */
+    .title-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      margin-bottom: .875rem;
+    }
+
+    .checkbox-wrap {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      margin-top: 3px;
+      position: relative;
+    }
+
+    /* Custom checkbox */
+    input[type="checkbox"]#todo-complete {
+      appearance: none;
+      -webkit-appearance: none;
+      width: 19px;
+      height: 19px;
+      border: 1.5px solid var(--border-strong);
+      border-radius: 6px;
+      background: var(--bg-card);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background var(--transition), border-color var(--transition), transform var(--transition);
+      position: relative;
+      flex-shrink: 0;
+    }
+
+    input[type="checkbox"]#todo-complete:hover {
+      border-color: var(--accent-purple);
+      background: var(--accent-purple-bg);
+    }
+
+    input[type="checkbox"]#todo-complete:focus-visible {
+      outline: 2px solid var(--accent-purple);
+      outline-offset: 2px;
+    }
+
+    input[type="checkbox"]#todo-complete:active {
+      transform: scale(.88);
+    }
+
+    input[type="checkbox"]#todo-complete:checked {
+      background: var(--accent-purple);
+      border-color: var(--accent-purple);
+    }
+
+    input[type="checkbox"]#todo-complete:checked::after {
+      content: '';
+      display: block;
+      width: 10px;
+      height: 6px;
+      border-left: 2px solid #fff;
+      border-bottom: 2px solid #fff;
+      transform: rotate(-45deg) translate(1px, -1px);
+    }
+
+    .title-block {
+      flex: 1;
+      min-width: 0;
+    }
+
+    h2.todo-title {
+      font-size: 16.5px;
+      font-weight: 600;
+      color: var(--text-primary);
+      line-height: 1.45;
+      word-break: break-word;
+      transition: color var(--transition), text-decoration var(--transition);
+    }
+
+    h2.todo-title.done {
+      text-decoration: line-through;
+      color: var(--text-muted);
+    }
+
+    /* ── Description ── */
+    p.todo-desc {
+      font-size: 13.5px;
+      color: var(--text-secondary);
+      line-height: 1.65;
+      word-break: break-word;
+      margin-bottom: 1.125rem;
+    }
+
+    /* ── Meta ── */
+    .meta-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 1.125rem;
+    }
+
+    .meta-item {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 9px 12px;
+    }
+
+    .meta-item .meta-label {
+      font-size: 10.5px;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      color: var(--text-muted);
+      margin-bottom: 3px;
+    }
+
+    time.due-date {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-primary);
+      font-family: var(--font-mono);
+      display: block;
+    }
+
+    time.time-remaining {
+      font-size: 12.5px;
+      font-weight: 500;
+      display: block;
+      font-family: var(--font-mono);
+    }
+
+    .time-overdue {
+      color: var(--priority-high-text);
+    }
+
+    .time-soon {
+      color: var(--priority-med-text);
+    }
+
+    .time-ontrack {
+      color: var(--priority-low-text);
+    }
+
+    .time-now {
+      color: var(--accent-purple);
+    }
+
+    /* ── Tags ── */
+    ul.tags-list {
+      list-style: none;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    li.tag-chip {
+      font-size: 12px;
+      font-weight: 500;
+      padding: 4px 11px;
+      border-radius: var(--radius-pill);
+      background: var(--tag-bg);
+      color: var(--tag-text);
+      border: 1px solid var(--border);
+      transition: background var(--transition), color var(--transition);
+      cursor: default;
+    }
+
+    li.tag-chip:hover {
+      background: var(--accent-purple-bg);
+      color: var(--accent-purple-text);
+      border-color: rgba(107, 78, 255, .2);
+    }
+
+    /* ── Divider ── */
+    .card-divider {
+      height: 1px;
+      background: var(--border);
+      margin: 0 1.25rem;
+    }
+
+    /* ── Card Footer ── */
+    .card-footer {
+      padding: .875rem 1.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    .text-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 14px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      background: transparent;
+      font-family: var(--font-sans);
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: background var(--transition), color var(--transition), border-color var(--transition), transform var(--transition);
+    }
+
+    .text-btn:hover {
+      background: var(--bg-surface-2);
+      color: var(--text-primary);
+      border-color: var(--border-strong);
+    }
+
+    .text-btn:active {
+      transform: scale(.96);
+    }
+
+    .text-btn:focus-visible {
+      outline: 2px solid var(--accent-purple);
+      outline-offset: 2px;
+    }
+
+    .text-btn.delete:hover {
+      background: var(--delete-hover-bg);
+      color: var(--delete-hover-text);
+      border-color: var(--delete-hover-border);
+    }
+
+    .text-btn svg {
+      width: 14px;
+      height: 14px;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 480px) {
+      body {
+        padding: 1rem .75rem;
+      }
+
+      .meta-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .card-topbar {
+        padding: .875rem 1rem 0;
+      }
+
+      .card-main {
+        padding: .875rem 1rem;
+      }
+
+      .card-divider {
+        margin: 0 1rem;
+      }
+
+      .card-footer {
+        padding: .75rem 1rem;
+      }
+    }
+
+    @media (max-width: 360px) {
+      .actions .icon-btn {
+        width: 28px;
+        height: 28px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <main>
+    <h1 class="sr-only">Todo Task Card</h1>
+
+    <article data-testid="test-todo-card" class="todo-card" aria-label="Todo task: Buy Groceries">
+
+      <!-- Top bar: badges + icon actions -->
+      <div class="card-topbar">
+        <div class="badge-row">
+          <span class="badge badge-priority-high" data-testid="test-todo-priority" aria-label="Priority: High">
+            <span class="dot" aria-hidden="true"></span>
+            High
+          </span>
+
+          <span class="badge badge-status" id="status-badge" data-testid="test-todo-status"
+            aria-label="Status: In Progress">
+            In Progress
+          </span>
+        </div>
+
+        <div class="actions">
+          <button class="icon-btn" data-testid="test-todo-edit-button" aria-label="Edit task" title="Edit task"
+            onclick="console.log('edit clicked')">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+              stroke-linejoin="round" aria-hidden="true">
+              <path d="M11.5 2.5a1.414 1.414 0 0 1 2 2L5 13H3v-2L11.5 2.5z" />
+            </svg>
+          </button>
+
+          <button class="icon-btn delete" data-testid="test-todo-delete-button" aria-label="Delete task"
+            title="Delete task" onclick="alert('Delete task?\n\nAre you sure you want to delete this task?')">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+              stroke-linejoin="round" aria-hidden="true">
+              <polyline points="3 5 13 5" />
+              <path d="M6 5V3h4v2M6 8v4M10 8v4" />
+              <rect x="4" y="5" width="8" height="9" rx="1" />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Main content -->
+      <div class="card-main">
+
+        <!-- Checkbox + title -->
+        <div class="title-row">
+          <div class="checkbox-wrap">
+            <input type="checkbox" id="todo-complete" data-testid="test-todo-complete-toggle"
+              aria-label="Mark task as complete" />
+          </div>
+          <label for="todo-complete" class="sr-only">Mark task complete</label>
+
+          <div class="title-block">
+            <h2 class="todo-title" data-testid="test-todo-title">
+              Buy groceries
+            </h2>
+          </div>
+        </div>
+
+        <!-- Description -->
+        <p class="todo-desc" data-testid="test-todo-description">
+          Pick up milk, eggs, bread, tomatoes, and chicken from the supermarket before dinner.
+        </p>
+
+        <!-- Due date + time remaining -->
+        <div class="meta-grid">
+          <div class="meta-item">
+            <p class="meta-label">Due date</p>
+            <time class="due-date" data-testid="test-todo-due-date" datetime="2026-05-01T18:00:00Z">
+              May 1, 2026
+            </time>
+          </div>
+
+          <div class="meta-item">
+            <p class="meta-label">Time remaining</p>
+            <time id="time-remaining" class="time-remaining time-ontrack" data-testid="test-todo-time-remaining"
+              datetime="2026-05-01T18:00:00Z" aria-live="polite" aria-atomic="true" aria-label="Time remaining">
+              Calculating…
+            </time>
+          </div>
+        </div>
+
+        <!-- Tags -->
+        <ul class="tags-list" role="list" data-testid="test-todo-tags" aria-label="Tags">
+          <li class="tag-chip" data-testid="test-todo-tag-work" role="listitem">work</li>
+          <li class="tag-chip" data-testid="test-todo-tag-urgent" role="listitem">urgent</li>
+          <li class="tag-chip" data-testid="test-todo-tag-design" role="listitem">design</li>
+        </ul>
+
+      </div>
+
+    </article>
+  </main>
+</body>
+
+</html>
+
+<script>
+  let DUE_DATE = new Date('2026-05-01T18:00:00Z');
+  let CHECKBOX = document.getElementById('todo-complete');
+  let TITLE_EL = document.querySelector('[data-testid="test-todo-title"]');
+  let STATUS_BADGE = document.getElementById('status-badge');
+  let TIME_EL = document.getElementById('time-remaining');
+
+  /* ── Time Remaining ── */
+  function computeRemaining(now) {
+    const diff = DUE_DATE - now;
+    const absMs = Math.abs(diff);
+    const mins = Math.round(absMs / 60_000); // 60_000 milliseconds in a minute
+    const hrs = Math.round(absMs / 3_600_000); // 3_600_000 milliseconds in an hour
+    const days = Math.round(absMs / 86_400_000); // 86_400_000 milliseconds in a day
+
+    if (absMs < 60_000) return { text: 'Due now!', cls: 'time-now' };
+
+    if (diff < 0) {
+      if (mins < 60) return { text: `Overdue by ${mins} min${mins !== 1 ? 's' : ''}`, cls: 'time-overdue' };
+      if (hrs < 24) return { text: `Overdue by ${hrs} hr${hrs !== 1 ? 's' : ''}`, cls: 'time-overdue' };
+      return { text: `Overdue by ${days} day${days !== 1 ? 's' : ''}`, cls: 'time-overdue' };
+    }
+
+    if (mins < 60) return { text: `Due in ${mins} min${mins !== 1 ? 's' : ''}`, cls: 'time-soon' };
+    if (hrs < 24) return { text: `Due in ${hrs} hr${hrs !== 1 ? 's' : ''}`, cls: 'time-soon' };
+    if (days === 1) return { text: 'Due tomorrow', cls: 'time-soon' };
+    return { text: `Due in ${days} days`, cls: 'time-ontrack' };
+  }
+
+  function updateRemaining() {
+    const { text, cls } = computeRemaining(new Date());
+    TIME_EL.textContent = text;
+    TIME_EL.className = `time-remaining ${cls}`;
+  }
+
+  updateRemaining();
+  setInterval(updateRemaining, 60_000);
+
+  /* ── Checkbox Toggle ── */
+  CHECKBOX.addEventListener('change', function () {
+    const done = this.checked;
+
+    TITLE_EL.classList.toggle('done', done);
+
+    if (done) {
+      STATUS_BADGE.textContent = 'Done';
+      STATUS_BADGE.className = 'badge badge-status done';
+      STATUS_BADGE.setAttribute('aria-label', 'Status: Done');
+    } else {
+      STATUS_BADGE.textContent = 'In Progress';
+      STATUS_BADGE.className = 'badge badge-status';
+      STATUS_BADGE.setAttribute('aria-label', 'Status: In Progress');
+    }
+  });
+</script>
+</body>
+
+</html>
